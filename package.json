@@ -1,0 +1,22 @@
+{
+  "name": "amazon-server",
+  "version": "1.0.0",
+  "description": "a custom amazon api server created by henock adane",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "henock adane",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.0.0",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "mongodb": "^3.6.3",
+    "mongoose": "^5.11.14",
+    "node-sass": "^4.14.1",
+    "nodemailer": "^6.4.17"
+  }
+}
