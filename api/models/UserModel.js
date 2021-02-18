@@ -33,7 +33,7 @@ const userSchema = Schema({
         type: Array,
         required: true
     },
-    savedProducts: {
+    lists: {
         type: Array,
         required: true
     },

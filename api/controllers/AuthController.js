@@ -83,19 +83,18 @@ class AuthController{
                     },
                     confirmed: false,
                     orders: [],
-                    savedProducts: [],
+                    lists: [],
                     createdAt: new Date()
                 })
 
                 await user.save()
 
-                const from = `<${process.env.USER}>`,
-                to= email,
+                const to= email,
                 subject= "Confirmation Code",
                 html=`<b><p>This Code Will Expire In 5 Minutes. If The Code Has Expired, Please Request For A New One.</p>
                 <p>Confirmation Code:${randomConfirmationCode}</p></b>`
 
-                const mailInfo = await sendMail(from,to,subject,html)
+                const mailInfo = await sendMail(to,subject,html)
                 if (mailInfo){
                   console.log("Message sent: %s", mailInfo.messageId);
                 }                
@@ -160,13 +159,12 @@ class AuthController{
             }
 
             await user.save()
-            const from = `<${process.env.USER}>`,
-            to= email,
+            const to= email,
             subject= "New Confirmation Code",
             html=`<b><p>This Code Will Expire In 5 Minutes. If The Code Has Expired, Please Request For A New One.</p>
             <p>Confirmation Code:${randomConfirmationCode}</p></b>`
 
-            const mailInfo = await sendMail(from,to,subject,html)
+            const mailInfo = await sendMail(to,subject,html)
             if (mailInfo){
               console.log("Message sent: %s", mailInfo.messageId);
             }                
@@ -183,6 +181,142 @@ class AuthController{
         
       
     }
+
+    async updateName(req,res,next){
+      const {newName, userID} = req.body
+
+      try{
+
+          const user = await userModel.findOne({_id: userID})
+
+          if (!user){
+              throw new Error("There has been an unexpeceted error at updateName")
+          }
+
+          user.name = newName
+
+          await user.save()
+
+          const to = user.email,
+          subject = "Name Change On Amazon Clone",
+          html = "Hey your name on amazon clone has been changed"
+
+          const mailInfo = await sendMail(to,subject,html)
+              if (mailInfo){
+                console.log("Message sent: %s", mailInfo.messageId);
+              }       
+
+          console.log("user name has been updated")
+
+          res.status(200).send(user)
+
+
+
+
+      } catch(error){
+          console.log(error)
+          res.status(500).send()
+      }
+      
+  }
+
+  async updateEmail(req,res,next){
+      const {newEmail, userID} = req.body
+
+      try{
+
+          const user = await userModel.findOne({_id: userID})
+
+          if (!user){
+              throw new Error("There has been an unexpeceted error at updateName")
+          }
+
+          let randomConfirmationCode = ""
+          const options = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+          while (randomConfirmationCode.length < 50){
+              randomConfirmationCode+= options[Math.floor(Math.random() * options.length)]
+          }
+
+          user.email = newEmail
+          user.confirmed = false
+          user.confirmationCode =  {
+              value: randomConfirmationCode,
+              createdAt: new Date().getTime()
+          }
+
+          await user.save()
+
+          const to= user.email,
+          subject= "Email Change On Amazon Clone",
+          html=`<b><p>Hey, your account email has been changed on amazon clone and needs to be reconfirmed. This Code Will Expire In 5 Minutes. If The Code Has Expired, Please Request For A New One.</p>
+          <p>Confirmation Code:${randomConfirmationCode}</p></b>`
+
+          const mailInfo = await sendMail(to,subject,html)
+              if (mailInfo){
+                console.log("Message sent: %s", mailInfo.messageId);
+              }       
+
+          console.log("user email has been updated")
+
+          res.status(200).send(user)
+
+
+
+
+      } catch(error){
+          console.log(error)
+          res.status(500).send()
+      }
+      
+  }
+
+
+  async updatePassword(req,res,next){
+      const {currentPassword, newPassword, userID} = req.body
+
+      try{
+          const user = await userModel.findOne({_id : userID})
+
+          //checking if the currentPassword submitted by the client matches the current password of this user
+          const doesPasswordMatch = await bcrypt.compare(currentPassword, user.password)
+
+          if (doesPasswordMatch){
+              //password does match
+
+              const hashedPassword = await bcrypt.hash(newPassword, 10)
+
+              user.password = hashedPassword
+
+              await user.save()
+
+              const to = user.email,
+              subject = "Password Change On Amazon Clone",
+              html = "Hey your password on amazon clone has been changed"
+
+              const mailInfo = await sendMail(to,subject,html)
+              
+              if (mailInfo){
+                console.log("Message sent: %s", mailInfo.messageId);
+              }
+
+              console.log("user password has been updated")
+              console.log(newPassword)
+              res.status(200).send({user: user})
+          }
+
+          else{
+              res.status(200).send({message: "The passwords do not match"})
+          }
+
+
+
+      } catch(error){
+          console.log(error)
+
+          res.status(500).send()
+      }
+  }
 }
 
 
